@@ -1,35 +1,37 @@
 ---
 import DocsLayout from "../../layouts/DocsLayout.astro";
-import CodeBlock from "../../components/CodeBlock.astro";
 const domains = [
-  ["compositor", "Wayland windows, input, outputs, session, tiling, animation and rendering."],
-  ["config", "Preferences, translations, process helpers and plugin metadata."],
-  ["core", "Small lifecycle contracts, listener helpers and compile definitions."],
-  ["ctl", "The local control client."],
-  ["desktop", "Applications and the data/actions used by the shell."],
+  ["compositor", "Wayland protocols, windows, input, outputs, session, tiling and scrolling layouts, animation, rendering and the control socket."],
+  ["config", "Desktop preferences, translations, session.json and plugin metadata."],
+  ["core", "Small contracts: JSON access, files, processes, listener helpers."],
+  ["ctl", "lunadashctl, the control client."],
+  ["desktop", "Applications, wallpapers (including the video player), themes, shortcuts and system tools used by the shell."],
   ["service", "Standalone services, including the file chooser portal."],
-  ["shell", "QML module configuration, runtime support and the media helper."],
+];
+const repositories = [
+  ["LunaDash", "https://github.com/LuYishan-4/LunaDash", "The compositor, desktop services, packaging and the pins of the other components."],
+  ["LunaDash-Shell", "https://github.com/LunaDashWM/LunaDash-Shell", "The panel, dock, launcher, dashboard, settings, switchers and wallpaper library, written in Slint."],
+  ["SlintLu", "https://github.com/LunaDashWM/SlintLu", "Runs Slint shells as Wayland layer-shell windows and provides the desktop services."],
+  ["LunaDash-docs", "https://github.com/LunaDashWM/LunaDash-docs", "This website."],
 ];
 ---
-<DocsLayout title="A place for every feature." section="architecture" summary="LunaDash keeps its Wayland compositor, desktop services and shell in clear source domains, with build checks that protect those boundaries.">
+<DocsLayout title="A place for every feature." section="architecture" summary="How the compositor, the Slint shell and SlintLu fit together, and where each feature lives in the source.">
   <h2 id="runtime">How the desktop fits together</h2>
-  <p>The C++20 compositor uses wlroots for Wayland protocols, input and scene output. Quickshell runs the QML shell in a separate process. Native tools use Qt Widgets, and the file chooser portal exposes a D-Bus service. The compositor does not use Qt Wayland Compositor or implement an X11 window manager.</p>
-  <p>XWayland remains an authenticated compatibility container that starts on demand. The refactor preserves the existing window animations, wlroots version compatibility, configuration paths and command-line executable names.</p>
+  <p>The C++20 compositor uses wlroots for Wayland protocols, input and scene rendering, with a C11 core for geometry and rendering helpers. It starts the shell as a separate Wayland client: <a href="../../slintlu/">SlintLu</a> runs the <a href="https://github.com/LunaDashWM/LunaDash-Shell">LunaDash shell</a>, written in Slint. The two talk only through Wayland and the compositor's <a href="../api/">control socket</a>; the compositor links no UI toolkit.</p>
+  <p>XWayland starts on demand for X11 applications. Video wallpapers play in <code>mpvpaper</code>, which the compositor starts and keeps below the shell's wallpaper surface.</p>
+
+  <h2 id="repositories">Component repositories</h2>
+  <div class="table-scroll"><table><thead><tr><th scope="col">Repository</th><th scope="col">Contains</th></tr></thead><tbody>{repositories.map(([name, url, text]) => <tr><th scope="row"><a href={url}>{name}</a></th><td>{text}</td></tr>)}</tbody></table></div>
+  <p>LunaDash's <code>packaging/shell-revision</code> and <code>packaging/slintlu-revision</code> pin the shell and SlintLu commits that packages, the installer and the NixOS module build together.</p>
+
   <h2 id="domains">Find the feature you want to change</h2>
   <div class="table-scroll"><table><thead><tr><th scope="col">Under src/</th><th scope="col">Responsibility</th></tr></thead><tbody>{domains.map(([name, description]) => <tr><th scope="row"><code>{name}/</code></th><td>{description}</td></tr>)}</tbody></table></div>
-  <p>Directories use lowercase names. Adjacent C++ interfaces and implementations use PascalCase <code>.hpp</code> and <code>.cpp</code> files in the <code>LunaDash</code> namespace. Each executable has a small <code>Main.cpp</code>; its startup logic belongs to its application module. C functions retain the <code>ludash_</code> prefix.</p>
-  <p>The root <code>nix/</code> directory owns Nix packaging, NixOS module options and installed runtime checks. <code>flake.nix</code> and <code>flake.lock</code> stay at the repository root. Arch packaging remains under <code>packaging/arch/</code>.</p>
-  <h2 id="components">Component repositories</h2>
-  <p>The <a href="https://github.com/LunaDashWM/LunaDash-docs">Astro site</a> and <a href="https://github.com/LunaDashWM/LunaDash-Shell">Quickshell UI</a> each have a separate source repository. LunaDash's <code>dev</code> branch records the Shell commit in <code>packaging/shell-revision</code>; its install command fetches and installs that revision. The website source is cloned by its own CI and by the root Pages workflow, never into the LunaDash source tree. Compositor sources stay in the integration repository at <code>src/compositor/</code>. Root CMake builds the integrated desktop; the compositor source domain is not yet an independent CMake project because it consumes shared APIs from the integration repository.</p>
-  <h2 id="rendering">Rendering has an explicit owner</h2>
-  <p><code>compositor/renderer/</code> contains rendering orchestration. Raw OpenGL implementation, resource owners and built-in GLSL live together under <code>renderer/opengl/</code>. CMake embeds the shaders into the binary, so installed applications never need the source checkout or a particular working directory.</p>
-  <p>The active compositor uses the wlroots scene renderer. The retained Qt OpenGL element library is compiled and tested separately; its blur and procedural wallpaper passes are not currently connected to that scene. Image wallpaper and shell transitions are supplied by Quickshell.</p>
+  <p>Directories use lowercase names. C++ interfaces and implementations sit side by side as PascalCase <code>.hpp</code> and <code>.cpp</code> files in the <code>LunaDash</code> namespace; C functions use the <code>ludash_</code> prefix. Each executable has a small <code>Main.cpp</code>. Window layouts implement one interface (<code>compositor/layout/WindowLayout.hpp</code>): the tiling split tree, the scrolling columns and the free-form stacking layout.</p>
+  <p><code>nix/</code> holds the Nix packaging and NixOS module, <code>packaging/arch/</code> the Arch package.</p>
+
   <h2 id="extend">Add a feature without spreading its details</h2>
-  <ol><li>Choose the owning domain and define its public interface.</li><li>Make lifetime ownership explicit; use the existing module, feature and listener contracts where they help.</li><li>List sources in the owning CMake target and keep implementation resources with their module.</li><li>Update tests, the technical documentation and the matching website guide.</li></ol>
-  <p>Core code cannot include higher-level domains. Desktop services cannot include compositor internals, and renderer code cannot include desktop UI. CI rejects invalid include directions, naming violations, unlisted source files and misplaced GL code.</p>
-  <CodeBlock label="ARCHITECTURE AND REGRESSION CHECKS" code={'python3 scripts/check-source-layout.py\npython3 tests/architecture/test_source_layout.py\ncmake -S . -B build -G Ninja \\\n  -DLUDASH_BUILD_RENDERER_TESTS=ON\ncmake --build build --parallel 2\nctest --test-dir build --output-on-failure'} />
-  <h2 id="verification">What passing checks establish</h2>
-  <p>The workflows cover source structure, builds, file operations, embedded shader loading and cleanup, software OpenGL, wlroots protocol and window lifecycles, Qt clients, on-demand XWayland and this website. Dev CI selects affected shared suites; Main CI includes all suites and security analysis. The distribution matrix covers Arch, Debian, Fedora, openSUSE and Alpine; Nix checks build x86_64 and evaluate the aarch64 package. Always inspect the completed runs for the exact commit before claiming a platform passed.</p>
-  <div class="doc-callout"><p><strong>LunaDash remains a development preview.</strong> Physical GPUs, display-manager login, multiple outputs, Chrome/Zed and full input-method behavior need session testing. Screen locking and a complete PipeWire screen-sharing portal are not implemented. Native plugins remain opt-in and execute without a sandbox.</p></div>
-  <p>Read the <a href="https://github.com/LuYishan-4/LunaDash/blob/dev/docs/en/ARCHITECTURE.md">technical architecture</a> and <a href="https://github.com/LuYishan-4/LunaDash/blob/dev/docs/en/TESTING_AND_FILES.md">testing and source map</a> for ownership details and the current validation commands.</p>
+  <ol><li>Choose the owning domain and define its interface there.</li><li>Shell behaviour belongs in LunaDash-Shell; a runtime capability the shell lacks belongs in SlintLu as a general feature.</li><li>List new sources in the owning CMake target.</li><li>Update the documentation and this website.</li></ol>
+
+  <div class="doc-callout"><p><strong>LunaDash is a development preview.</strong> Physical GPUs, multiple outputs and some input-method details need testing on real systems. Native plugins remain opt-in and run without a sandbox.</p></div>
+  <p>Read the <a href="https://github.com/LuYishan-4/LunaDash/blob/dev/docs/en/ARCHITECTURE.md">technical architecture</a> for ownership details.</p>
 </DocsLayout>

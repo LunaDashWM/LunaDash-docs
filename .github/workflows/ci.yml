@@ -1,9 +1,6 @@
 name: Website CI
-# CI only builds. `npm run check`, scripts/test-site.py and scripts/test-release-source.py
-# run locally before pushing.
+# Builds pull requests; pushes to main are built and deployed by pages.yml.
 on:
-  push:
-    branches: [main]
   pull_request:
 permissions:
   contents: read

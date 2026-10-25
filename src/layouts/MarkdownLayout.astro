@@ -1,0 +1,8 @@
+---
+// Wraps Markdown pages (the SlintLu documentation) in the documentation layout.
+import DocsLayout from "./DocsLayout.astro";
+const { frontmatter } = Astro.props;
+---
+<DocsLayout title={frontmatter.title} summary={frontmatter.summary} section={frontmatter.section}>
+  <div class="markdown"><slot /></div>
+</DocsLayout>

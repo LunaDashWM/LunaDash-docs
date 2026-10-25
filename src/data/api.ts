@@ -59,7 +59,7 @@ export const methods: Method[] = [
     "category": "Windows and workspaces",
     "name": "workspace",
     "value": "Zero-based workspace index",
-    "behavior": "Switch to an existing workspace. The index must be within appearance.workspaceCount.",
+    "behavior": "Switch to a workspace. Workspaces are dynamic: the occupied ones plus one empty workspace after them (status.workspaceCount).",
     "example": "lunadashctl workspace 1"
   },
   {
@@ -266,48 +266,6 @@ export const methods: Method[] = [
     "example": "lunadashctl extension-error '{\"id\":\"org.example.panel@panel\",\"error\":\"\"}'"
   },
   {
-    "category": "Shell modules",
-    "name": "module-validate",
-    "value": "Complete shell-modules JSON",
-    "behavior": "Validate the versioned module document without writing it.",
-    "example": "lunadashctl module-validate \"$(cat shell-modules.json)\""
-  },
-  {
-    "category": "Shell modules",
-    "name": "module-save",
-    "value": "Complete shell-modules JSON",
-    "behavior": "Validate, atomically save and apply the module document.",
-    "example": "lunadashctl module-save '<json>'"
-  },
-  {
-    "category": "Shell modules",
-    "name": "module-template",
-    "value": "Template id",
-    "behavior": "Install a supported starter module file without overwriting an existing user file.",
-    "example": "lunadashctl module-template panel"
-  },
-  {
-    "category": "Shell modules",
-    "name": "module-code-trust",
-    "value": "true or false",
-    "behavior": "Opt in/out of executing user custom QML; this code is trusted user code, not sandboxed.",
-    "example": "lunadashctl module-code-trust true"
-  },
-  {
-    "category": "Shell modules",
-    "name": "module-reset",
-    "value": "Empty",
-    "behavior": "Restore built-in module settings and disable custom-code trust while preserving user QML files.",
-    "example": "lunadashctl module-reset"
-  },
-  {
-    "category": "Shell modules",
-    "name": "module-error",
-    "value": "JSON {\"id\":\"module-id\",\"error\":\"message\"}",
-    "behavior": "Report or clear a custom-module runtime error so recovery content remains available.",
-    "example": "lunadashctl module-error '{\"id\":\"panel\",\"error\":\"load failed\"}'"
-  },
-  {
     "category": "Audio, network and power",
     "name": "audio",
     "value": "JSON with exactly device plus id, volume or mute",
@@ -467,6 +425,34 @@ export const methods: Method[] = [
     "value": "Literal \"confirm\"",
     "behavior": "Request normal LunaDash session shutdown. Empty is rejected.",
     "example": "lunadashctl quit confirm"
+  },
+  {
+    "category": "Windows and workspaces",
+    "name": "tiling-mode",
+    "value": "toggle, fill or scroll",
+    "behavior": "Switch tiling between Fill (the split tree fills the screen) and Normal (niri-like scrollable columns). Same as Super+Shift+Space; stored as the tilingMode preference.",
+    "example": "lunadashctl tiling-mode toggle"
+  },
+  {
+    "category": "Windows and workspaces",
+    "name": "switch-begin",
+    "value": "windows or workspaces",
+    "behavior": "Open the window switcher (every window in the taskbar) or the workspace switcher without a keyboard shortcut; switch-step, switch-window and switch-accept/switch-cancel drive it.",
+    "example": "lunadashctl switch-begin windows"
+  },
+  {
+    "category": "Capture and wallpaper",
+    "name": "wallpaper-favorite",
+    "value": "add:<path> or remove:<path>",
+    "behavior": "Mark a library wallpaper as a favourite or remove the mark.",
+    "example": "lunadashctl wallpaper-favorite add:/home/me/Pictures/Wallpapers/sky.png"
+  },
+  {
+    "category": "Capture and wallpaper",
+    "name": "wallpaper-refresh",
+    "value": "Empty",
+    "behavior": "Rescan the wallpaper library folder without opening the shell's picker.",
+    "example": "lunadashctl wallpaper-refresh"
   }
 ];
 
@@ -489,17 +475,12 @@ export const statusFields: ApiField[] = [
   {
     "name": "extensions",
     "type": "object",
-    "purpose": "Installed plugins, remote Store catalogue, target registry, extensions document/path and Store state."
+    "purpose": "Installed plugins, the target registry, the extensions document and path, and per-plugin errors."
   },
   {
     "name": "settingsApi",
     "type": "object",
     "purpose": "Settings API version and editable target descriptors; same payload as settings-describe."
-  },
-  {
-    "name": "shellModules",
-    "type": "object",
-    "purpose": "Module document/descriptors/path, custom-code trust and runtime errors."
   },
   {
     "name": "audio / network / power",
@@ -537,76 +518,33 @@ export const statusFields: ApiField[] = [
     "purpose": "Locale and shell translation dictionary."
   },
   {
-    "name": "settingsSerial / pickerSerial / launcherSerial",
+    "name": "settingsSerial / pickerSerial / launcherSerial / shellActionSerial",
     "type": "numbers",
-    "purpose": "Interaction serials used by the shell to open UI surfaces."
+    "purpose": "Serials SlintLu watches to open shell surfaces when a shortcut asks (settings, Super+W, launcher, control center)."
   },
   {
     "name": "graphicsApi / shaderReady / graphicsFailed",
     "type": "string / booleans",
     "purpose": "Renderer-health summary for the active wlroots path."
-  }
-];
-
-export const qmlApi: ApiField[] = [
-  {
-    "name": "shell.state",
-    "type": "var",
-    "purpose": "Latest status snapshot; treat it as read-only and mutate through commands."
   },
   {
-    "name": "shell.command(method, value)",
-    "type": "function",
-    "purpose": "Queue a ludashctl operation. JSON-valued methods must receive JSON.stringify(...)."
+    "name": "workspaceCount",
+    "type": "number",
+    "purpose": "The number of workspaces: the occupied ones plus one empty workspace after them."
   },
   {
-    "name": "shell.commandCompleted(method, result)",
-    "type": "signal",
-    "purpose": "Emitted after a queued command returns with parsed JSON."
-  },
-  {
-    "name": "shell.launch(id)",
-    "type": "function",
-    "purpose": "Launch terminal/files/browser defaults, open Settings/Plugins, or a built-in LunaDash desktop app."
-  },
-  {
-    "name": "shell.openUrl(url)",
-    "type": "function",
-    "purpose": "Open a URL through the configured browser."
-  },
-  {
-    "name": "shell.setAppearance(changes)",
-    "type": "function",
-    "purpose": "Convenience wrapper around the appearance control method."
-  },
-  {
-    "name": "shell.openSettingsPage(page)",
-    "type": "function",
-    "purpose": "Open the shell Settings surface at a page id."
-  },
-  {
-    "name": "shell.settingsOpen",
-    "type": "bool",
-    "purpose": "Current Settings visibility."
-  },
-  {
-    "name": "shell.focusedTitle",
+    "name": "tilingMode",
     "type": "string",
-    "purpose": "Focused client title, or LunaDash when none is focused."
+    "purpose": "fill or scroll: the tiling mode in use."
   },
   {
-    "name": "shell.tr(source)",
-    "type": "function",
-    "purpose": "Translate with state.translations, falling back to source."
+    "name": "wallpaperPoster",
+    "type": "string",
+    "purpose": "A file:// still frame of a video wallpaper; empty for images."
   },
   {
-    "name": "shell.notify(title, body, kind, details)",
-    "type": "function",
-    "purpose": "Show shell feedback while respecting notification preferences."
-  },
-  {
-    "name": "shell.configureNetwork()",
-    "type": "function",
-    "purpose": "Open the host network editor while preserving first-run behavior."
+    "name": "wallpaperLive",
+    "type": "boolean",
+    "purpose": "Whether mpvpaper is playing the video wallpaper below the shell."
   }
 ];

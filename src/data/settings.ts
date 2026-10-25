@@ -4,74 +4,91 @@ export interface SettingGroup {
   description: string;
   details: string[];
 }
+
+// The pages of the LunaDash shell's Settings, in sidebar order.
 export const groups: SettingGroup[] = [
   {
-    id: "general",
-    name: "Language & everyday preferences",
-    description:
-      "Open General to select your language, font family or clock format, or reopen the welcome screen.",
+    id: "appearance",
+    name: "Appearance",
+    description: "Colours, glass and motion for the whole desktop.",
     details: [
-      "The shell updates language live; reopen native applications to apply a different language.",
-      "Reset desktop preferences restores LunaDash appearance, keyboard and workspace defaults. It does not erase files or network profiles.",
+      "Mode follows the desktop or stays dark or light; on LunaDash applications follow through the portal colour scheme.",
+      "Eight accent colours, or the palette's own; LunaDash can also derive its palette from the wallpaper.",
+      "Transparency with an adjustable glass opacity, compact / default / round corners and 90–125 % text size.",
+      "Animations with a fast, normal or relaxed speed, shared by the shell and window animations.",
+      "Palettes from the shell's theme, including LunaDash dark and light.",
     ],
   },
   {
-    id: "appearance",
-    name: "Color, wallpaper & soft blur",
-    description:
-      "Choose an accent color and wallpaper image, then tune gaps, panel height, background blur and motion. Wallpaper previews and the desktop reveal new images with a circle expanding from the bottom-right corner.",
+    id: "wallpaper",
+    name: "Wallpaper",
+    description: "Images and videos behind everything, and the clock on top of them.",
     details: [
-      "Blur starts enabled at radius 18. Lower the radius to reduce GPU work; window opacity ranges from 60% to 100%.",
-      "Set animation duration between 0 and 600 ms, or disable animations for reduced motion.",
-      "Plugin windows and LunaDash file dialogs follow the accent and font settings. Kitty retains your configuration; third-party applications use their own themes.",
+      "Open the wallpaper library (also Super+W), browse any folder, or choose a single image or video file.",
+      "Fit (fill screen, whole image or stretch) and dimming up to 60 %.",
+      "The desktop clock: shown or hidden, bottom left / bottom right / top left / centre, three sizes, with or without the date.",
+      "Shuffle picks a random wallpaper from the LunaDash library.",
+    ],
+  },
+  {
+    id: "panel",
+    name: "Panel",
+    description: "The bar with workspaces, clock and status.",
+    details: [
+      "Top or bottom edge; popups, overlays and the dock move out of its way.",
+      "Workspaces as dots or numbers, the focused window's title, and the date next to the clock.",
+      "24-hour clock, seconds and the first day of the week.",
+    ],
+  },
+  {
+    id: "dock",
+    name: "Dock",
+    description: "Pinned applications and running windows.",
+    details: [
+      "Show or hide the dock, hide it automatically until the pointer reaches the bottom edge, and choose small, medium or large icons.",
+      "The launcher button can be removed; Unpin all clears the pinned applications.",
     ],
   },
   {
     id: "windows",
-    name: "Tiling & workspaces",
-    description:
-      "Choose 1–10 workspaces and window gaps. Windows stay within one screen: two split left/right, then new windows split the largest tile. Groups support up to eight vertical rows.",
+    name: "Windows",
+    description: "How LunaDash arranges and draws application windows.",
     details: [
-      "Super+1…9 and Super+0 switch workspaces (0 selects workspace 10); Super+Shift+1…9 moves the focused window to an existing workspace.",
-      "Super+H/L focuses left/right; Super+K/J focuses up/down. Super+F maximizes one window or restores the saved workspace tiling, and Super+C closes the focused window.",
-      "Alt + left-drag swaps window slots; drop at a top/bottom edge to insert into a column. A single window moves without resizing. Add Shift to resize shared boundaries and redistribute space without overlap.",
-      "The taskbar groups windows into workspace capsules without numeric badges: the current workspace is brighter and the others use a darker tint. Selecting a tiled task animates the workspace change and maximizes it, temporarily hiding its workspace peers. Click the active task again or press Super+F to restore all saved tile sizes and positions. Alt+Tab previews windows in the current workspace. Super+Tab opens the workspace overview. Release Alt or Super to confirm the matching switcher, or press Esc to cancel.",
-      "Reducing workspace count moves windows from removed workspaces to the last remaining workspace.",
+      "Tiling: Fill (the split tree fills the screen) or Normal (niri-like scrollable columns). Super+Shift+Space switches.",
+      "Gaps between windows, window opacity, blur and blur strength.",
     ],
   },
   {
     id: "display",
-    name: "Display, keyboard & pointer",
-    description:
-      "Adjust internal backlight and per-monitor DDC/CI brightness, select a supported primary-output mode and scale text and controls. Keyboard settings change the Wayland keymap and repeat behavior.",
+    name: "Display",
+    description: "Night light and the pointer.",
     details: [
-      "Available keyboard layouts: us, gb, de, fr, es, jp and tw. Repeat rate is 0–60; delay is 200–1500 ms.",
-      "Cursor size applies to the next session. Host monitor, mouse and touchpad editors are labelled as host controls.",
-      "Confirm resolution, refresh-rate and scale changes within 15 seconds or they revert automatically. Physical modes in nested sessions belong to the host. External brightness requires DDC/CI and I2C access; multi-monitor arrangement and HDR remain incomplete.",
+      "Night light (Super+N) with a colour temperature from 2500 K to 6500 K.",
+      "Cursor size; it applies after signing in again.",
     ],
   },
   {
-    id: "services",
-    name: "Sound, networking & power",
-    description:
-      "Sound controls the default output and microphone through WirePlumber. Power profiles use power-profiles-daemon.",
+    id: "notifications",
+    name: "Notifications",
+    description: "Pop-ups, do not disturb and the launcher layout.",
     details: [
-      "Volume is capped at 100%. Unavailable devices and failed commands are shown rather than reported as successful changes.",
-      "Existing network connections are reused. Network configuration opens NetworkManager's editor; passwords remain in that editor. Saved profiles and Wi-Fi names that contain a colon are listed correctly.",
-      "Bluetooth, printers, disks, accounts, clock and accessibility pages show available system tools and packages to install.",
-      "LunaDash displays application notifications and starts an installed polkit authentication agent. Screen locking and screen-sharing/PipeWire portals remain incomplete.",
+      "Pop-ups top right, top centre or bottom right, shown for 3, 5 or 10 seconds; do not disturb lets only critical notifications through.",
+      "The launcher can use a comfortable or a compact grid.",
     ],
   },
   {
-    id: "applications",
-    name: "Default applications & startup",
-    description:
-      "Applications and startup lists every installed application for each default role, with the role default pinned at the top of the list.",
+    id: "power",
+    name: "Power & lock",
+    description: "Locking and staying awake.",
     details: [
-      "Terminal defaults to Kitty, opened with Super+T, and respects your existing configuration. The login shell and user Fish configuration are not rewritten.",
-      "Files defaults to Dolphin. Select another installed file manager in Settings; the LunaDash file picker and screen/window sharing chooser remain available.",
-      "The browser role controls web links opened by LunaDash and prefers Chrome when available. Default application roles affect LunaDash launchers and shortcuts; file-type associations are configured separately.",
-      "Startup selection currently covers built-in tools; general desktop-entry autostart and session restoration are not implemented.",
+      "Lock after 5, 10 or 30 minutes of inactivity, or never, and lock before sleep.",
+      "Keep the screen awake until LunaDash restarts, or lock right away.",
     ],
+  },
+  {
+    id: "language",
+    name: "Language",
+    description: "The interface language of the shell and, on LunaDash, the whole desktop.",
+    details: ["English, Traditional Chinese and every other installed translation; the shell switches immediately."],
   },
 ];

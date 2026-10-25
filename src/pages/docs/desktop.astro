@@ -1,0 +1,50 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+const shortcuts: Array<[string, string]> = [
+  ["Super (tap)", "Open the launcher"],
+  ["Super + T / E / D", "Terminal / file manager / launcher"],
+  ["Super + W", "Wallpaper library; Super + Ctrl + W picks a random wallpaper"],
+  ["Super + I / V / X", "Dashboard / clipboard history / power menu"],
+  ["Super + Shift + S", "Select a screenshot region (Escape cancels)"],
+  ["Super + N", "Night light on or off"],
+  ["Super + H / L", "Focus the column to the left / right"],
+  ["Super + K / J", "Focus the window above / below in the column"],
+  ["Super + Shift + H / L", "Move the focused window into the left / right column"],
+  ["Super + Shift + E", "Expel the window into its own column"],
+  ["Super + Ctrl + H / L", "Move the focused column left / right"],
+  ["Super + = / -", "Widen / narrow the focused column"],
+  ["Super + Shift + C", "Centre the focused column"],
+  ["Super + Shift + Space", "Switch tiling between Fill and Normal"],
+  ["Super + F / Shift + F", "Maximize / fullscreen"],
+  ["Super + C / M", "Close / minimize the focused window"],
+  ["Alt + Tab", "Window switcher: every window in the taskbar"],
+  ["Super + Tab", "Workspace switcher"],
+  ["Super + 1–9 / 0", "Switch workspace; add Shift to move the focused window"],
+  ["Alt + left-drag", "Move a window; add Shift to resize"],
+];
+---
+<DocsLayout title="Workspaces that keep up with you." section="desktop" summary="Dynamic workspaces, two tiling modes, switchers for every window and wallpapers that can move: how the LunaDash desktop behaves.">
+  <nav class="doc-toc" aria-label="On this page"><a href="#workspaces">Workspaces</a><a href="#tiling">Tiling</a><a href="#switchers">Switchers</a><a href="#wallpapers">Wallpapers</a><a href="#shortcuts">Shortcuts</a></nav>
+
+  <h2 id="workspaces">Workspaces grow and shrink</h2>
+  <p>There is always exactly one empty workspace after the last one that has windows. Open a window there and the next empty workspace appears; leave an empty workspace between occupied ones and it disappears. Switching slides the whole workspace sideways; turn off animations or choose a speed in Settings → Appearance. The panel shows the workspaces as dots or numbers.</p>
+
+  <h2 id="tiling">Fill or Normal tiling</h2>
+  <p>Ordinary windows are tiled. Super+Shift+Space, or Settings → Windows, switches between two modes and keeps every window where it belongs:</p>
+  <ul>
+    <li><strong>Fill</strong>: a split tree divides the screen between the windows. Two windows sit side by side; later windows split the focused or the largest tile.</li>
+    <li><strong>Normal</strong>: like niri, every window keeps its column width (half the screen by default), new windows open as a column to the right of the focused one and the view scrolls sideways to keep the focused column visible. Columns can stack several windows.</li>
+  </ul>
+  <p>In both modes Super+F maximizes over the work area, Alt+drag moves a window and Alt+Shift+drag resizes it. Gaps, window opacity and blur are in Settings → Windows.</p>
+
+  <h2 id="switchers">Find any window</h2>
+  <p><strong>Alt+Tab</strong> opens a box in the middle of the screen with every window in the taskbar, the current workspace first; release Alt to switch, even to another workspace. <strong>Super+Tab</strong> shows the workspaces with the icons of their windows. Both boxes can be clicked, and the window button next to the panel's workspaces opens them (right-click: workspaces).</p>
+
+  <h2 id="wallpapers">Wallpapers, still or moving</h2>
+  <p><strong>Super+W</strong> opens the wallpaper library: your wallpaper folder (<code>~/Pictures/Wallpapers</code> by default, changeable in the library) and LunaDash's own wallpapers, with search, Library / Bundled / Favorites, categories, a Static / Live filter, favourite stars, a random choice and the dark / light / auto switch. Settings → Wallpaper also browses any folder or picks a single file.</p>
+  <p>PNG, JPEG, WebP, BMP and GIF images work as wallpapers. MP4, WebM, MKV, MOV and M4V videos play muted in a loop through <code>mpvpaper</code>, beneath the shell's desktop clock; without mpvpaper LunaDash shows a still frame. Fit, dimming and the desktop clock are in Settings → Wallpaper.</p>
+
+  <h2 id="shortcuts">Keyboard shortcuts</h2>
+  <p><strong>Super</strong> is the Meta key. Most bindings can be changed through the compositor's shortcut settings (<code>lunadashctl shortcuts</code>).</p>
+  <div class="table-scroll"><table class="shortcuts" aria-label="Default keyboard shortcuts"><thead><tr><th scope="col">Shortcut</th><th scope="col">Action</th></tr></thead><tbody>{shortcuts.map(([keys, action]) => <tr><th scope="row"><code>{keys}</code></th><td>{action}</td></tr>)}</tbody></table></div>
+</DocsLayout>

@@ -1,7 +1,7 @@
 ---
 import DocsLayout from "../../layouts/DocsLayout.astro";
 import CodeBlock from "../../components/CodeBlock.astro";
-import { methods, qmlApi, statusFields } from "../../data/api";
+import { methods, statusFields } from "../../data/api";
 const categories = Array.from(new Set(methods.map(method => method.category)));
 const cliExamples = "lunadashctl status\nlunadashctl workspace 1\nlunadashctl appearance '{\"gap\":16,\"animations\":true}'\nlunadashctl quit confirm";
 const wireRequest = "{\"method\":\"appearance\",\"value\":\"{\\\"gap\\\":16}\"}\n";
@@ -9,13 +9,12 @@ const directSocket = "import json, os, socket\n\npath = os.environ.get(\"LUNADAS
 const networkExamples = "lunadashctl network '{\"action\":\"wifi-scan\"}'\nlunadashctl network '{\"action\":\"wifi-connect\",\"ssid\":\"Lab WiFi\",\"password\":\"...\"}'\nlunadashctl network '{\"action\":\"networking-enable\",\"enabled\":true}'\nlunadashctl network '{\"action\":\"connection-ipv4-manual\",\"name\":\"Lab\",\"address\":\"192.0.2.20/24\",\"gateway\":\"192.0.2.1\",\"dns\":\"1.1.1.1\"}'";
 const targetIds = "builtin:<extension-target>\nplugin:<package-id>:<extension-target>\nmodule:<module-id>:<section>\nlayout:<active-window-template>";
 const settingsPatch = "# Read descriptors\nlunadashctl settings-describe\n\n# Send the selected target's exact revision with a partial change\nlunadashctl settings-update '{\"target\":\"plugin:org.example.motion:window-animation\",\"revision\":\"<64-hex-sha256>\",\"changes\":{\"duration\":280}}'";
-const qmlExample = "import QtQuick\n\nItem {\n    required property var shell\n    required property var settings\n    required property var context\n\n    Text { text: shell.tr(\"Focused\") + \": \" + shell.focusedTitle }\n    TapHandler { onTapped: shell.command(\"workspace\", \"1\") }\n\n    Connections {\n        target: shell\n        function onCommandCompleted(method, result) {\n            if (method === \"workspace\" && result.error)\n                context.reportError(result.error)\n        }\n    }\n}";
 const nativeAbi = "#include <stddef.h>\n#include <stdint.h>\n\n#define LUDASH_PLUGIN_API_VERSION 2u\n\ntypedef struct ludash_plugin_api {\n    uint32_t struct_size;\n    uint32_t api_version;\n    const char *metadata_json;\n    int (*process)(const char *request, char *response, size_t capacity);\n} ludash_plugin_api;\n\nint ludash_plugin_process(const char *request, char *response, size_t capacity);\nconst ludash_plugin_api *ludash_plugin_entry_v2(void);\nint ludash_plugin_write_json(const char *json, char *response, size_t capacity);";
 const nativeEnvelope = "{\n  \"target\":\"window-animation\",\n  \"mode\":\"replace\",\n  \"context\":{},\n  \"builtin\":{\"duration\":220,\"enterOffset\":12,\"focusOpacity\":0.82,\"exitScale\":0.9,\"easing\":\"outCubic\"},\n  \"current\":{},\n  \"settings\":{\"duration\":280}\n}";
 ---
-<DocsLayout title="Every way to talk to LunaDash." section="api" summary="The dev branch exposes one owner-only Unix control socket, a versioned Settings API, the Quickshell shell object and Plugin SDK 2's synchronous C ABI. This page documents the contracts implemented by the current source tree.">
-  <nav class="doc-toc" aria-label="On this page"><a href="#wire">Wire protocol</a><a href="#status">Status</a><a href="#methods">Methods</a><a href="#settings-api">Settings API</a><a href="#qml">QML</a><a href="#native">Native ABI</a></nav>
-  <div class="doc-callout"><p><strong>This is a local session API, not HTTP.</strong> LunaDash binds a <code>QLocalServer</code> with user-only access. The website documents the API; it cannot control a running desktop.</p></div>
+<DocsLayout title="Every way to talk to LunaDash." section="api" summary="LunaDash exposes one owner-only Unix control socket, a versioned Settings API and Plugin SDK 2's synchronous C ABI; the shell reaches it through SlintLu. This page documents the contracts implemented by the current source tree.">
+  <nav class="doc-toc" aria-label="On this page"><a href="#wire">Wire protocol</a><a href="#status">Status</a><a href="#methods">Methods</a><a href="#settings-api">Settings API</a><a href="#native">Native ABI</a></nav>
+  <div class="doc-callout"><p><strong>This is a local session API, not HTTP.</strong> LunaDash listens on a Unix socket that only your user can open. The website documents the API; it cannot control a running desktop.</p></div>
 
   <h2 id="wire">Wire protocol and ludashctl</h2>
   <p>Processes launched by LunaDash inherit <code>LUNADASH_CONTROL</code>. The client still accepts the historical <code>LUDASH_CONTROL</code>, then searches the runtime directory for one unambiguous <code>*-control</code> socket. Prefer <code>LUNADASH_CONTROL</code> in new code.</p>
@@ -46,7 +45,7 @@ const nativeEnvelope = "{\n  \"target\":\"window-animation\",\n  \"mode\":\"repl
   <CodeBlock label="NETWORK EXAMPLES" code={networkExamples} />
 
   <h3>Shortcut ids</h3>
-  <p>Known actions are <code>focusLeft/Right/Up/Down</code>, <code>groupLeft/Right</code>, <code>reorderLeft/Right</code>, <code>expelWindow</code>, <code>centerColumn</code>, <code>widenColumn</code>, <code>narrowColumn</code>, <code>maximizeWindow</code>, <code>closeWindow</code>, <code>minimizeWindow</code>, <code>launchTerminal</code>, <code>launchFiles</code>, <code>launchLauncher</code>, <code>screenshot</code>, plus <code>workspace1..10</code> and <code>moveToWorkspace1..10</code>. Values are <code>Disabled</code> or one key with modifiers; at least Meta or Alt is required.</p>
+  <p>Known actions are <code>focusLeft/Right/Up/Down</code>, <code>groupLeft/Right</code>, <code>reorderLeft/Right</code>, <code>expelWindow</code>, <code>centerColumn</code>, <code>widenColumn</code>, <code>narrowColumn</code>, <code>maximizeWindow</code>, <code>toggleFullscreen</code>, <code>toggleTilingMode</code>, <code>closeWindow</code>, <code>minimizeWindow</code>, <code>launchTerminal</code>, <code>launchFiles</code>, <code>launchLauncher</code>, <code>launchOrbit</code>, <code>chooseWallpaper</code>, <code>randomWallpaper</code>, <code>toggleEyeCare</code>, <code>toggleScratchpad</code>, <code>openControlCenter</code>, <code>openClipboard</code>, <code>openPowerMenu</code>, <code>screenshot</code>, plus <code>workspace1..10</code> and <code>moveToWorkspace1..10</code>. Values are <code>Meta</code>/<code>Alt</code>/<code>Ctrl</code>/<code>Shift</code> combinations such as <code>Meta+Shift+Space</code>, or <code>Disabled</code>.</p>
 
   <h2 id="settings-api">Settings API version 1</h2>
   <p><code>settings-describe</code> returns descriptors with <code>id</code>, <code>name</code>, <code>type</code>, <code>category</code>, normalized <code>schema</code>, current <code>values</code> and a SHA-256 <code>revision</code>. The revision hashes schema plus values for optimistic concurrency.</p>
@@ -54,18 +53,12 @@ const nativeEnvelope = "{\n  \"target\":\"window-animation\",\n  \"mode\":\"repl
   <CodeBlock label="PATCH FLOW" code={settingsPatch} />
   <p>If another editor changed the target, the patch fails with <code>Settings changed. Reload before applying this edit.</code>. Schemas can describe boolean, string, integer, number and bounded enum-array fields. Plugin schemas intentionally allow only toggle, select, number and slider controls.</p>
 
-  <h2 id="qml">QML shell API</h2>
-  <p>SDK 2 Quickshell plugins receive <code>shell</code>, validated <code>settings</code> and target-specific <code>context</code> before construction. Treat <code>shell.state</code> as read-only and perform mutations through control methods.</p>
-  <div class="table-scroll"><table><thead><tr><th>Member</th><th>Type</th><th>Use</th></tr></thead><tbody>{qmlApi.map(item => <tr><td class="api-method">{item.name}</td><td><code>{item.type}</code></td><td>{item.purpose}</td></tr>)}</tbody></table></div>
-  <CodeBlock label="QML / SDK 2" code={qmlExample} />
-  <p>Every visual context adds <code>target</code>, built-in <code>source</code>, <code>builtinSettings</code>, effective <code>mode</code> and <code>reportError(message)</code>. A plugin may expose <code>pluginReady: false</code>; a replacement does not hide the built-in until the loader is ready and <code>pluginReady</code> is true.</p>
-
   <h2 id="native">Native Plugin SDK 2 ABI</h2>
-  <p>Native effects do not receive Qt or wlroots pointers. Hooks run synchronously on the compositor thread over UTF-8 JSON; do not block, retain host pointers, run nested event loops or create lifetime-escaping callbacks/background work.</p>
+  <p>Native effects do not receive wlroots pointers. Hooks run synchronously on the compositor thread over UTF-8 JSON; do not block, retain host pointers, run nested event loops or create lifetime-escaping callbacks/background work.</p>
   <CodeBlock label="ABI" code={nativeAbi} />
   <p>The SDK generates <code>ludash_plugin_entry_v2</code>, embeds the built manifest and produces the receipt. The loader checks struct size, API version 2, process pointer and equality between embedded and installed metadata.</p>
   <CodeBlock label="REQUEST ENVELOPE" code={nativeEnvelope} />
   <p><code>builtin</code> is always available. Replacement hooks get empty <code>current</code>; augment hooks receive the previous valid result. Return a complete JSON object and its byte length excluding NUL, or a negative value. The response buffer is 262,145 bytes. Invalid/oversized output quarantines the instance and preserves the built-in/previous result.</p>
-  <p>The native targets are <code>window-animation</code>, <code>shell-animation</code>, <code>window-rules</code> and <code>window-layout</code>. Their contracts plus every visual target are in the <a href="../plugins/">Plugin SDK and registration guide</a>.</p>
-  <div class="doc-callout"><p><strong>Trust boundary:</strong> Quickshell plugins run with user permissions and native effects run inside the compositor without a sandbox.</p></div>
+  <p>The native targets are <code>window-animation</code>, <code>shell-animation</code>, <code>window-rules</code> and <code>window-layout</code>; see <a href="../plugins/">Compositor plugins</a>.</p>
+  <div class="doc-callout"><p><strong>Trust boundary:</strong> native effects run inside the compositor without a sandbox.</p></div>
 </DocsLayout>

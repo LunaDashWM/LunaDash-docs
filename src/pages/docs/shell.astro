@@ -1,0 +1,40 @@
+---
+import DocsLayout from "../../layouts/DocsLayout.astro";
+import CodeBlock from "../../components/CodeBlock.astro";
+const parts = [
+  ["shell.slint", "Exports every window: each component inheriting PanelWindow becomes a layer-shell surface on every screen."],
+  ["panel/", "The top or bottom panel and its popups (calendar, audio, network, clipboard, tray)."],
+  ["dock/, launcher/, dashboard/", "Dock, application launcher and the dashboard with media, performance and notifications."],
+  ["settings/", "The settings center and its pages."],
+  ["wallpaper/", "The wallpaper with its desktop clock, the Super+W library and the folder browser."],
+  ["switcher/", "The Alt+Tab and Super+Tab boxes."],
+  ["session/, feedback/", "Lock screen, power menu, polkit dialog, notification pop-ups and on-screen display."],
+  ["state/, style/, components/", "Preferences, design tokens (colours, radii, motion) and shared controls."],
+  ["i18n/", "Translations: lunadash.pot and one .po file per language."],
+];
+const session = `{
+  "shell": "custom",
+  "shellCommand": ["/usr/libexec/lunadash/slintlu", "--config", "/home/me/my-shell"]
+}`;
+---
+<DocsLayout title="Your shell, in Slint." section="shell" summary="The panel, dock, launcher, dashboard and settings are plain Slint files run by SlintLu. Edit a copy, reload on save and make LunaDash use it.">
+  <h2 id="how">How the shell runs</h2>
+  <p>The compositor starts <a href="https://github.com/LunaDashWM/LunaDash-Shell">LunaDash-Shell</a> with <a href="../../slintlu/">SlintLu</a> (<code>slintlu --config /usr/share/lunadash/shell</code>). SlintLu compiles the Slint files at runtime, turns each exported <code>PanelWindow</code> into a Wayland layer-shell window and provides the desktop services: audio, network, Bluetooth, notifications, MPRIS, tray, polkit, idle, clipboard, applications and LunaDash's own workspaces, window switcher, wallpaper library and preferences.</p>
+  <div class="table-scroll"><table><thead><tr><th scope="col">In the shell</th><th scope="col">Contains</th></tr></thead><tbody>{parts.map(([path, text]) => <tr><th scope="row"><code>{path}</code></th><td>{text}</td></tr>)}</tbody></table></div>
+
+  <h2 id="edit">Edit your own copy</h2>
+  <p>Copy the installed shell (or clone the repository), change it and check it before using it. SlintLu reloads the files when they are saved; a broken edit keeps the running shell and prints the error.</p>
+  <CodeBlock code={'cp -r /usr/share/lunadash/shell ~/my-shell\n/usr/libexec/lunadash/slintlu check ~/my-shell'} />
+
+  <h2 id="session">Make LunaDash run it</h2>
+  <p><code>~/.config/LunaDash/session.json</code> chooses the shell. <code>custom</code> runs any command, so point it at SlintLu with your copy:</p>
+  <CodeBlock label="~/.CONFIG/LUNADASH/SESSION.JSON" code={session} />
+  <p>The same file can run a different shell (for example <code>["waybar"]</code>), none at all (<code>"shell": "none"</code>), a launcher command used when the LunaDash shell is not running, and up to 32 autostart commands. <code>LUNADASH_SHELL=lunadash</code> brings back the built-in shell for one session.</p>
+
+  <h2 id="talk">Talk to the running shell</h2>
+  <p><code>slintlu msg</code> reads and changes the shell's globals, which is useful in keyboard shortcuts and scripts:</p>
+  <CodeBlock code={'slintlu msg call Shared.set-string overlay settings\nslintlu msg get Compositor.wallpaper\nslintlu msg call Store.set-string panel-position bottom'} />
+  <p>See <a href="../../slintlu/ipc/">IPC and scripting</a> and the <a href="../../slintlu/api/">SlintLu API reference</a> for every global, and <a href="../../slintlu/i18n/">Translations</a> for adding a language.</p>
+
+  <div class="doc-callout"><p><strong>A shell is ordinary code with your permissions.</strong> It can run commands and read files; only use shells you trust.</p></div>
+</DocsLayout>
